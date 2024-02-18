@@ -1,0 +1,22 @@
+{{ template "base" }}
+
+{{ define "body" }}
+	<div class="container mt-5">
+		<div class="row">
+			<div class="col-3"></div>
+			<div class="col-6">
+				<div class="card">
+					<div class="card-body">
+						<form action="/login/google">
+							<div class="form-group mt-3">
+								<button type="submit" class="btn form-control btn-success">
+									Login
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{{ end }}
