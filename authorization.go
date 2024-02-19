@@ -8,6 +8,7 @@ import (
 const (
 	sessionCookieKey = "sid"
 	sk_authenticated = "authenticated"
+	sk_name          = "name"
 )
 
 var (

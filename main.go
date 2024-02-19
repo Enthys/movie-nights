@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -32,10 +33,11 @@ func main() {
 	setupHandlers(mux)
 
 	server := http.Server{
-		Addr:    "0.0.0.0:5000",
+		Addr:    "0.0.0.0:80",
 		Handler: mux,
 	}
 
+	fmt.Println("Application listening on port 80")
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

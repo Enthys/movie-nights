@@ -51,10 +51,8 @@ func googleLoginCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Values["authenticated"] = true
-	s.Values["email"] = user.Email
-	s.Values["first_name"] = user.FirstName
-	s.Values["last_name"] = user.LastName
+	s.Values[sk_authenticated] = true
+	s.Values[sk_name] = fmt.Sprintf("%s %s", user.FirstName, user.LastName)
 
 	if err = s.Save(r, w); err != nil {
 		fmt.Fprintln(w, err)
@@ -79,16 +77,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func dashboardHandler(w http.ResponseWriter, r *http.Request) {
-	t, ok := templates["dashboard.page.html"]
-	if !ok {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error": "could not find template"}`))
-		return
-	}
 
-	if err := t.Execute(w, nil); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Sprintf(`{"error": "could not execute. %s"}`, err)))
-		return
-	}
+	render(w, r, "dashboard.page.html", nil)
 }

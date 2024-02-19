@@ -1,70 +1,17 @@
-{{ template "base" }}
+{{ template "base" . }}
 
 {{ define "body" }}
+	<div class="container">
+		<div class="row justify-content-around">
+			<div class="col-lg-7 border border-primary rounded">
+				<div>
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+				</div>	
+			</div>
 
-<div class="conainer p-5 mt-3">
-    <div class="row">
-        <div class="col-8" style="background-color: yellow;">
-            <button class="btn btn-success float-right">Add Movie</button>
-
-            <div class="row my-1">
-                <div class="offset-md-2 col-md-8">
-                    <div class="col-sm-12 btn-group">
-                        <div class="card col-sm-10">
-                            <div class="card-body">Modern family</div>
-                        </div>
-                        <button class="btn btn-info">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-half" viewBox="0 0 16 16">
-                                <path d="M8 2.748v11.047c3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
-                            </svg>
-                        </button>
-                        <button class="btn btn-danger"><i class="bi-trash"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="offset-md-2 col-md-8">
-                    <div class="col-sm-12 btn-group">
-                        <div class="card col-sm-10">
-                            <div class="card-body">Modern family</div>
-                        </div>
-                        <button class="btn btn-info">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-half" viewBox="0 0 16 16">
-                                <path d="M8 2.748v11.047c3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
-                            </svg>
-                        </button>
-                        <button type="button" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Delete">
-                            <i class="bi-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-4" style="background-color: red;">
-            <div class="row justify-content-end">
-                <button class="col-md-3 btn btn-success">Create Group</button>
-            </div>
-
-            <div class="row">
-                <div class="card col-sm-10">
-                    <div class="card-body">Casa Bozhka</div>
-                </div>
-
-                <button class="btn btn-info">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart-half" viewBox="0 0 16 16">
-                        <path d="M8 2.748v11.047c3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container mt-3">
-    <div class="row justify-content-around">
-    </div>
-
-</div>
+			<div class="col-lg-4 border border-primary rounded my-lg-0 my-2"> 
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+			</div>
+		</div>
+	</div>
 {{ end }}

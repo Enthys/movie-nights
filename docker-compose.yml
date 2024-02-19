@@ -1,6 +1,25 @@
 version: "3.7"
 
+volumes:
+  database_vol:
+
 services:
+  app:
+    container_name: movie_nights_app
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - .:/home/app
+    ports:
+      - "5000:80"
+    environment:
+      GOFLAGS: "-buildvcs=false"
+    env_file:
+      - .env
+    depends_on:
+      - database
+
   database:
     container_name: movie_night-database-1
     image: postgres:alpine
@@ -10,4 +29,6 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin_password
       - POSTGRES_DB=movie_night
+    volumes:
+      - database_vol:/var/lib/postgresql/data
 
