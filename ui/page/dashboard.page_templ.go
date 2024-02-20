@@ -93,7 +93,7 @@ func Groups(groups []Group) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><button type=\"button\" class=\"offset-8 col-4 my-2 btn btn-success btn-sm\" data-bs-toggle=\"collapse\" data-bs-target=\"#createGroupForm\" aria-expanded=\"false\" aria-controls=\"createGroupForm\">Create group</button><form class=\"collapse row my-2\" id=\"createGroupForm\"><div class=\"input-group\"><input type=\"text\" class=\"form-control\" placeholder=\"Group Name\" aria-label=\"Group Name\"> <button class=\"btn btn-outline-success\" type=\"button\">Create</button></div></form></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><button type=\"button\" class=\"offset-8 col-4 my-2 btn btn-success btn-sm\" data-bs-toggle=\"collapse\" data-bs-target=\"#createGroupForm\" aria-expanded=\"false\" aria-controls=\"createGroupForm\">Create group</button> <button type=\"button\" class=\"offset-8 col-4 my-2 btn btn-success btn-sm\" data-bs-toggle=\"collapse\" data-bs-target=\"#joinGroupForm\" aria-expanded=\"false\" aria-controls=\"joinGroupForm\">Join group</button><form class=\"collapse row my-2\" id=\"createGroupForm\"><div class=\"input-group\"><input type=\"text\" class=\"form-control\" placeholder=\"Group Name\" aria-label=\"Group Name\"> <button class=\"btn btn-outline-success\" type=\"button\">Create</button></div></form><form class=\"collapse row my-2\" id=\"joinGroupForm\"><div class=\"input-group\"><input type=\"text\" class=\"form-control\" placeholder=\"Search\" aria-label=\"Search\"> <button class=\"btn btn-outline-success\" type=\"button\">Search</button></div></form></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -137,7 +137,7 @@ func (m Movie) Row() templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/page/dashboard.page.templ`, Line: 60, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/page/dashboard.page.templ`, Line: 74, Col: 20}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
