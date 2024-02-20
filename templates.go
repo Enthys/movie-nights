@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	//go:embed view/*
+	// -- go:embed view/*
 	files     embed.FS
 	templates map[string]*template.Template
 	tplFunc   template.FuncMap = template.FuncMap{}

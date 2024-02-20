@@ -20,10 +20,6 @@ func main() {
 	setupSessionStore()
 	loadGoogleAuthentication()
 
-	if err := loadTemplates(); err != nil {
-		log.Fatalf("failed to load templates. %s", err)
-	}
-
 	if err := connectToDb(); err != nil {
 		log.Fatalf("failed to establish database connection. %s", err)
 	}

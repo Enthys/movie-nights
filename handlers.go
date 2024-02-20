@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"movie_night/ui/layout"
+	"movie_night/ui/page"
 	"net/http"
+	"time"
 
 	"github.com/markbates/goth/gothic"
 )
@@ -16,18 +19,9 @@ func setupHandlers(mux *http.ServeMux) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	t, ok := templates["index.page.html"]
-	if !ok {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error": "could not find template"}`))
-		return
-	}
-
-	if err := t.Execute(w, nil); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Sprintf(`{"error": "could not execute. %s"}`, err)))
-		return
-	}
+	layout.IndexLayout{
+		Authenticated: false,
+	}.Layout(page.LoginPage()).Render(r.Context(), w)
 }
 
 func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +71,24 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func dashboardHandler(w http.ResponseWriter, r *http.Request) {
-
-	render(w, r, "dashboard.page.html", nil)
+	layout.IndexLayout{
+		Authenticated: true,
+	}.Layout(
+		page.Dashboard(
+			[]page.Group{
+				{Name: "Foo", MemberCount: 10},
+				{Name: "Bar", MemberCount: 4},
+			},
+			[]page.Movie{
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+				{Name: "American Psycho", AddedDate: time.Now()},
+			},
+		)).Render(r.Context(), w)
 }
