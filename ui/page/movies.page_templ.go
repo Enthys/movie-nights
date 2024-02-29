@@ -10,7 +10,11 @@ import "context"
 import "io"
 import "bytes"
 
-func LoginPage() templ.Component {
+import (
+	"movie_night/ui/components"
+)
+
+func Movies() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -23,7 +27,17 @@ func LoginPage() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"container\"><div class=\"row\"><div class=\"offset-lg-3 col-lg-6\"><div class=\"card\"><div class=\"card-body\"><form action=\"/login/google\"><div class=\"form-group mt-3\"><button type=\"submit\" class=\"btn form-control btn-success\">Sign in</button></div></form></div></div></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"container\"><div class=\"row\"><h1 class=\"text-center\">My Movies</h1></div><div class=\"row mb-3\"><div class=\"col-12 offset-0 offset-sm-2 col-sm-8\"><div class=\"input-group\"><input type=\"text\" class=\"form-control\" placeholder=\"Movie IMDb link\"> <button type=\"button\" class=\"btn btn-outline-success\">Add</button></div></div></div><div class=\"row\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for i := 0; i < 10; i++ {
+			templ_7745c5c3_Err = components.NewMovie("foo", "foo", "foo", []string{}).Render().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -2,9 +2,21 @@ package main
 
 import (
 	"log"
+	"movie_night/types"
+	"net/http"
 	"os"
 	"strconv"
 )
+
+func extractUser(r *http.Request) *types.User {
+	user, ok := r.Context().Value(UserCtxKey).(*types.User)
+
+	if !ok {
+		panic("request with no user session passed authorization middleware")
+	}
+
+	return user
+}
 
 func reqEnv(key string) string {
 	val := os.Getenv(key)

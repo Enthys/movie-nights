@@ -27,12 +27,11 @@ run/setup:
 run/dev: run/setup
 	docker compose up
 
-## run/clear: Removed any existing instance and volume, rebuilds the project without any cache and starts the application anew
+## run/clear: Removed any existing instance and volume, rebuilds the project without any cache
 .PHONY: run/clear
 run/clear:
 	docker compose down -v
 	docker compose build --no-cache
-	docker compose up
 
 # ---------------------------------------------------
 # Database

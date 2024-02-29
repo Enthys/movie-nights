@@ -1,0 +1,52 @@
+package page
+
+import (
+    "movie_night/ui/components"
+)
+
+templ ViewGroup() {
+    <div class="container">
+        <div class="row">
+            <img src="/assets/images/filler.jpeg" class="col-sm-3 col-md-3 col-12" style="max-height: 200px; object-fit: cover"/>
+            <div class="col-sm-9 col-md-9 col-12 ">
+                <h3 class="">This group has a length!</h3>
+                <p>
+                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
+                    industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type 
+                    and scrambled it to make a type specimen book. It has survive
+                </p>
+            </div>
+        </div>
+        <hr />
+
+        <div class="row mb-2">
+            <div class="col-sm-12 col-lg-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Movie IMDb link" />
+                    <button type="button" class="btn btn-outline-success">Add</button>
+                </div>
+            </div>
+            <div class="col-sm-12 col-lg-1">
+                <p class="my-1 lh-5 text-center"><span class="align-baseline">Or</span></p>
+            </div>
+            <div class="col-sm-12 col-lg-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Movie name" />
+                    <button type="button" class="btn btn-outline-success">Seach</button>
+                </div>
+            </div>
+            <div class="col-sm-12 col-lg-1">
+                <p class="my-1 lh-5 text-center"><span class="align-baseline">Or</span></p>
+            </div>
+            <div class="px-2 px-sm-0 col-12 col-sm-2 text-center">
+                <button class=" btn btn-success">Pick Random</button>
+            </div>
+        </div>
+
+        <div class="row">
+            for i := 0; i < 10; i++ {
+                @components.NewMovie("foo", "foo", "foo", []string{}).Render()
+            }
+        </div>
+    </div>
+}

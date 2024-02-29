@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"movie_night/types"
 	"net/http"
 )
 
@@ -16,7 +18,7 @@ func notAuthenticated(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if !u.IsNew {
-			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+			http.Redirect(w, r, "/groups", http.StatusSeeOther)
 			return
 		}
 
@@ -39,6 +41,14 @@ func userAuthenticated(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		user := &types.User{
+			ID:        u.Values[sk_id].(int),
+			Name:      u.Values[sk_name].(string),
+			AvatarURL: u.Values[sk_avatar].(string),
+			SocialId:  u.Values[sk_socialId].(string),
+		}
+
+		r = r.WithContext(context.WithValue(r.Context(), UserCtxKey, user))
 		next(w, r)
 	}
 }

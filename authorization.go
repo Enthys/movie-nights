@@ -5,10 +5,17 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
+type RequestCtxKey string
+
 const (
 	sessionCookieKey = "sid"
-	sk_authenticated = "authenticated"
-	sk_name          = "name"
+	sk_authenticated = "user_authenticated"
+	sk_id            = "user_id"
+	sk_name          = "user_name"
+	sk_avatar        = "user_avatar"
+	sk_socialId      = "user_socialId"
+
+	UserCtxKey = RequestCtxKey("user")
 )
 
 var (

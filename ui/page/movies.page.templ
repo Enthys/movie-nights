@@ -1,0 +1,28 @@
+package page
+
+import (
+    "movie_night/ui/components"
+)
+
+templ Movies() {
+    <div class="container">
+        <div class="row">
+            <h1 class="text-center">My Movies</h1>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-12 offset-0 offset-sm-2 col-sm-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Movie IMDb link" />
+                    <button type="button" class="btn btn-outline-success">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+        for i := 0; i < 10; i++ {
+            @components.NewMovie("foo", "foo", "foo", []string{}).Render()
+        }
+        </div>
+    </div>
+}

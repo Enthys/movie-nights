@@ -75,8 +75,6 @@ func render(w http.ResponseWriter, r *http.Request, templateName string, data in
 
 	tplData.Data = data
 
-	fmt.Printf("%+v", tplData)
-
 	if err := t.Execute(w, tplData); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf(`{"error": "could not execute. %s"}`, err)))

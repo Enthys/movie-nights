@@ -1,9 +1,10 @@
-package main
+package types
 
 type User struct {
-	ID       int
-	SocialId string
-	Name     string
+	ID        int
+	SocialId  string
+	Name      string
+	AvatarURL string
 }
 
 type Movie struct {
@@ -20,6 +21,8 @@ type MovieRating struct {
 }
 
 type Group struct {
-	ID   int
-	Name string
+	ID          int
+	Name        string
+	Description string
+	CreatedBy   int
 }

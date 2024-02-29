@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"movie_night/types"
 	"movie_night/ui/layout"
 	"movie_night/ui/page"
 	"net/http"
-	"time"
 
 	"github.com/markbates/goth/gothic"
 )
@@ -14,14 +15,19 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.Handle("GET /login/{provider}", notAuthenticated(googleLoginHandler))
 	mux.Handle("GET /login/{provider}/callback", notAuthenticated(googleLoginCallbackHandler))
 	mux.Handle("GET /logout", userAuthenticated(logoutHandler))
-	mux.Handle("GET /dashboard", userAuthenticated(dashboardHandler))
+	mux.Handle("GET /avatar", userAuthenticated(avatarHandler))
+	mux.Handle("GET /groups", userAuthenticated(groupsHandler))
+	mux.Handle("POST /groups", userAuthenticated(createGroupHandler))
+	mux.Handle("GET /groups/{id}", userAuthenticated(viewGroupHandler))
+	mux.Handle("GET /movies", userAuthenticated(myMoviesHandler))
+
+	staticDir := "."
+	mux.Handle("GET /assets/", http.FileServer(http.Dir(staticDir)))
 	mux.Handle("GET /", notAuthenticated(indexHandler))
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	layout.IndexLayout{
-		Authenticated: false,
-	}.Layout(page.LoginPage()).Render(r.Context(), w)
+	layout.NewIndex(nil).WithBody(page.LoginPage()).Render(r.Context(), w)
 }
 
 func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +39,13 @@ func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func googleLoginCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := gothic.CompleteUserAuth(w, r)
+	gothUser, err := gothic.CompleteUserAuth(w, r)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+
+	user, err := getOrCreateUser(gothUser.UserID, gothUser.FirstName, gothUser.LastName, gothUser.AvatarURL)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -46,7 +58,10 @@ func googleLoginCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.Values[sk_authenticated] = true
-	s.Values[sk_name] = fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+	s.Values[sk_id] = user.ID
+	s.Values[sk_socialId] = user.SocialId
+	s.Values[sk_name] = user.Name
+	s.Values[sk_avatar] = user.AvatarURL
 
 	if err = s.Save(r, w); err != nil {
 		fmt.Fprintln(w, err)
@@ -70,25 +85,119 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func dashboardHandler(w http.ResponseWriter, r *http.Request) {
-	layout.IndexLayout{
-		Authenticated: true,
-	}.Layout(
-		page.Dashboard(
-			[]page.Group{
-				{Name: "Foo", MemberCount: 10},
-				{Name: "Bar", MemberCount: 4},
-			},
-			[]page.Movie{
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-				{Name: "American Psycho", AddedDate: time.Now()},
-			},
-		)).Render(r.Context(), w)
+func avatarHandler(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+
+	req, _ := http.NewRequest("GET", user.AvatarURL, nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Fprintln(w, "Something went wrong")
+		return
+	}
+
+	io.Copy(w, resp.Body)
 }
+
+func createGroupHandler(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+
+	newGroup, err := createGroup(name, description, user.ID)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if err = addUserToGroup(user.ID, newGroup.ID); err != nil {
+		fmt.Println(err)
+	}
+
+	http.Redirect(w, r, "/groups", http.StatusSeeOther)
+}
+
+func groupsHandler(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+
+	layout.NewIndex(user).WithBody(
+		page.Groups(),
+	).Render(r.Context(), w)
+}
+
+func viewGroupHandler(w http.ResponseWriter, r *http.Request) {
+	user := types.User{
+		Name:      "Foo Bar",
+		AvatarURL: "/asd",
+		ID:        1,
+		SocialId:  "asd",
+	}
+	layout.NewIndex(&user).WithBody(
+		page.ViewGroup(),
+	).Render(r.Context(), w)
+}
+
+func myMoviesHandler(w http.ResponseWriter, r *http.Request) {
+	user := types.User{
+		Name:      "Foo Bar",
+		AvatarURL: "/asd",
+		ID:        1,
+		SocialId:  "asd",
+	}
+	layout.NewIndex(&user).WithBody(
+		page.Movies(),
+	).Render(r.Context(), w)
+}
+
+// func searchGroupsHandler(w http.ResponseWriter, r *http.Request) {
+// 	name := r.FormValue("name")
+
+// 	foundGroups, err := searchGroupsByName(name)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+
+// 	var groups []page.Group
+// 	for _, foundGroup := range foundGroups {
+// 		groups = append(groups, page.Group{
+// 			Name: foundGroup.Name,
+// 		})
+// 	}
+
+// 	page.GroupCollection("found-groups", groups).Render(r.Context(), w)
+// }
+
+// func dashboardHandler(w http.ResponseWriter, r *http.Request) {
+// 	user := r.Context().Value(userCtxKey).(*types.User)
+
+// 	userGroups, err := getUserGroups(user)
+// 	if err != nil {
+// 		fmt.Fprintln(w, "Something went terribly wrong")
+// 		return
+// 	}
+
+// 	var groups []page.Group
+// 	for _, userGroup := range userGroups {
+// 		groups = append(groups, page.Group{
+// 			Name: userGroup.Name,
+// 		})
+// 	}
+
+// 	layout.IndexLayout{
+// 		Authenticated: true,
+// 	}.Layout(
+// 		user,
+// 		page.Dashboard(
+// 			groups,
+// 			[]page.Movie{
+// 				{Name: "American Psycho", AddedDate: time.Now()},
+// 				{Name: "American Psycho", AddedDate: time.Now()},
+// 				{Name: "American Psycho", AddedDate: time.Now()},
+// 				{Name: "American Psycho", AddedDate: time.Now()},
+// 				{Name: "American Psycho", AddedDate: time.Now()},
+// 				{Name: "American Psycho", AddedDate: time.Now()},
+// 				{Name: "American Psycho", AddedDate: time.Now()},
+// 			},
+// 		)).Render(r.Context(), w)
+// }

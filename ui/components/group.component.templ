@@ -1,0 +1,30 @@
+package components
+
+type Group struct {
+    name string
+    description string
+    thumbnailUrl string
+}
+
+func NewGroup(name, description, thumbnailUrl string) Group {
+    return Group {
+        name: name,
+        description: description,
+        thumbnailUrl: thumbnailUrl,
+    }
+}
+
+templ (g Group) Render() {
+    <div class="card mt-3 p-3">
+        <div class="row g-0">
+            <img class="col-md-3 img-fluid rounded-start" style="max-height: 200px; object-fit: cover" src="/assets/images/filler.jpeg"/>
+            <div class="col-md-9">
+                <div class="card-body">
+                    <h5 class="card-title">Group FooBar</h5>
+                    <p class="card-text">The coolest group of all where all the shit happens</p>
+                    <a href="/groups/1" class="btn btn-success stretched-link">Open</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
