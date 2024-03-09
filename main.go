@@ -29,7 +29,7 @@ func main() {
 	setupHandlers(mux)
 
 	server := http.Server{
-		Addr:    "0.0.0.0:80",
+		Addr:    reqEnv("APP_ADDRESS"),
 		Handler: mux,
 	}
 

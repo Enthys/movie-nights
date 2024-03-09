@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -12,7 +13,22 @@ import (
 var db *sql.DB
 
 func connectToDb() error {
-	conn, err := sql.Open("postgres", reqEnv("MOVIENIGHT_DB_DSN"))
+	username := reqEnv("MOVIE_NIGHTS_DB_USER")
+	password := url.QueryEscape(reqEnv("MOVIE_NIGHTS_DB_PASS"))
+	host := reqEnv("MOVIE_NIGHTS_DB_HOST")
+	port := reqEnvInt("MOVIE_NIGHTS_DB_PORT")
+	name := reqEnv("MOVIE_NIGHTS_DB_NAME")
+	args := reqEnv("MOVIE_NIGHTS_DB_ARGS")
+
+	conn, err := sql.Open("postgres", fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?%s",
+		username,
+		password,
+		host,
+		port,
+		name,
+		args,
+	))
 
 	if err != nil {
 		return fmt.Errorf("failed to connect to database. %w", err)

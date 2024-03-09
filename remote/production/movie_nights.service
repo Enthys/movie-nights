@@ -1,0 +1,23 @@
+[Unit]
+Description=Movie Nights service
+
+After=postgresql.service
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=movie_nights
+Group=movie_nights
+EnvironmentFile=/etc/environment
+WorkingDirectory=/home/movie_nights
+ExecStart=/home/movie_nights/movie_nights
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
