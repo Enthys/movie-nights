@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	_ "github.com/joho/godotenv/autoload"
+
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/google"
 )

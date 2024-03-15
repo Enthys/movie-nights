@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"io"
-	"movie_night/types"
 	"movie_night/ui/layout"
 	"movie_night/ui/page"
+	"movie_night/validator"
 	"net/http"
 
 	"github.com/markbates/goth/gothic"
@@ -17,6 +17,7 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.Handle("GET /logout", userAuthenticated(logoutHandler))
 	mux.Handle("GET /avatar", userAuthenticated(avatarHandler))
 	mux.Handle("GET /groups", userAuthenticated(groupsHandler))
+	mux.Handle("GET /groups/create", userAuthenticated(createGroupFormHandler))
 	mux.Handle("POST /groups", userAuthenticated(createGroupHandler))
 	mux.Handle("GET /groups/{id}", userAuthenticated(viewGroupHandler))
 	mux.Handle("GET /movies", userAuthenticated(myMoviesHandler))
@@ -99,11 +100,25 @@ func avatarHandler(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, resp.Body)
 }
 
+func createGroupFormHandler(w http.ResponseWriter, r *http.Request) {
+	layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(validator.New())).Render(r.Context(), w)
+}
+
 func createGroupHandler(w http.ResponseWriter, r *http.Request) {
 	user := extractUser(r)
-
 	name := r.FormValue("name")
 	description := r.FormValue("description")
+
+	v := validator.New()
+	fmt.Println(len(name))
+	v.Check(len(name) > 3 && len(name) < 25, "name", "Group name has to be at least 4 characters and at most 24 characters long.")
+	v.Check(len(description) <= 300, "description", "Description should be at most 300 characters long.")
+
+	if !v.Valid() {
+		layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(v)).Render(r.Context(), w)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	newGroup, err := createGroup(name, description, user.ID)
 
@@ -119,35 +134,15 @@ func createGroupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func groupsHandler(w http.ResponseWriter, r *http.Request) {
-	user := extractUser(r)
-
-	layout.NewIndex(user).WithBody(
-		page.Groups(),
-	).Render(r.Context(), w)
+	layout.NewIndex(extractUser(r)).WithBody(page.Groups()).Render(r.Context(), w)
 }
 
 func viewGroupHandler(w http.ResponseWriter, r *http.Request) {
-	user := types.User{
-		Name:      "Foo Bar",
-		AvatarURL: "/asd",
-		ID:        1,
-		SocialId:  "asd",
-	}
-	layout.NewIndex(&user).WithBody(
-		page.ViewGroup(),
-	).Render(r.Context(), w)
+	layout.NewIndex(extractUser(r)).WithBody(page.ViewGroup()).Render(r.Context(), w)
 }
 
 func myMoviesHandler(w http.ResponseWriter, r *http.Request) {
-	user := types.User{
-		Name:      "Foo Bar",
-		AvatarURL: "/asd",
-		ID:        1,
-		SocialId:  "asd",
-	}
-	layout.NewIndex(&user).WithBody(
-		page.Movies(),
-	).Render(r.Context(), w)
+	layout.NewIndex(extractUser(r)).WithBody(page.Movies()).Render(r.Context(), w)
 }
 
 // func searchGroupsHandler(w http.ResponseWriter, r *http.Request) {

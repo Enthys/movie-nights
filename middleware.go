@@ -2,16 +2,27 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"movie_night/types"
 	"net/http"
+
+	"github.com/gorilla/securecookie"
 )
 
 func notAuthenticated(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, err := store.Get(r, sessionCookieKey)
 		if err != nil {
-			w.WriteHeader(500)
+			if errors.Is(err, securecookie.ErrMacInvalid) {
+				u.Options.MaxAge = -1
+				if saveErr := u.Save(r, w); saveErr != nil {
+					log.Println("failed to clear session.", saveErr)
+				}
+				return
+			}
+
+			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("something went wrong!"))
 			log.Println("failed to retrieve user session. ", err)
 			return

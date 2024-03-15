@@ -7,13 +7,19 @@ import (
 templ Groups() {
     <div class="container">
         <div class="row">
-            <div class="input-group">
-                <input 
-                    class="form-control col-lg-4 col-10" 
-                    type="text" 
-                    placeholder="Search for group"
-                />
-                <button class="btn btn-outline-secondary">Search</button>
+            <div class="col-10">
+                <div class="input-group">
+                    <input 
+                        class="form-control" 
+                        type="text" 
+                        placeholder="Search for group"
+                    />
+                    <button class="btn btn-outline-secondary">Search</button>
+                </div>
+            </div>
+
+            <div class="col-2">
+                <a href="/groups/create"><button class="btn btn-success">Create group</button></a>
             </div>
         </div>
 

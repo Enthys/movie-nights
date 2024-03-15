@@ -1,0 +1,40 @@
+package page
+
+import "movie_night/validator"
+
+templ GroupsCreate(v *validator.Validator) {
+    <div class="container">
+        <form class="needs-validation" method="POST" action="/groups" novalidate>
+            <legend>Create new group</legend>
+            <div class="mb-3">
+                <label class="form-label">Group name</label>
+                <input 
+                    name="name"
+                    type="text"
+                    class={"form-control", templ.KV("border-danger", v.HasError("name"))} 
+                    placeholder="Coolest group!" 
+                    required
+                 />
+                if v.HasError("name") {
+                    <div class="text-danger">{ v.Errors["name"] }</div>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label>Group description <sub>*optional</sub></label>
+                <input 
+                    name="description"
+                    type="text"
+                    class={"form-control", templ.KV("border-danger", v.HasError("description"))}
+                    placeholder="(Optional)"
+                    required
+                />
+                if v.HasError("description") {
+                    <div class="text-danger">{ v.Errors["description"] }</div>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-lg btn-success">Create</button>
+        </form>
+    </div>
+}

@@ -40,7 +40,7 @@ run/clear:
 ## db/conenct: Connect to database
 .PHONY: db/connect
 db/connect: run/setup
-	docker container exec -it movie_night-database-1 psql ${MOVIENIGHT_DB_DSN}
+	docker container exec -it movie_night-database-1 psql "postgres://$$MOVIE_NIGHTS_DB_USER:$$(printf %s $$MOVIE_NIGHTS_DB_PASS | jq -sRr @uri)@$$MOVIE_NIGHTS_DB_HOST:$$MOVIE_NIGHTS_DB_PORT/$$MOVIE_NIGHTS_DB_NAME?$$MOVIE_NIGHTS_DB_ARGS"
 
 ## db/migrations/up: Run migrations
 .PHONY: db/migrations/up
@@ -67,7 +67,7 @@ app/deploy/build:
 	@templ generate
 	@echo "Templ templates compiled successfully"
 	@echo "Building project to ./bin/movie_nights"
-	@go build -o ./bin/movie_nights
+	@CGO_ENABLED=0 go build -o ./bin/movie_nights
 	@echo "Build was successful"
 	@echo "Copying over binary to server"
 	@rsync -rP --delete ./bin/movie_nights movie_nights@movie-nights.enthys.com:~
@@ -97,3 +97,16 @@ app/deploy/static:
 
 .PHONY: app/deploy
 app/deploy: app/deploy/build app/deploy/migrations app/deploy/app.service app/deploy/static
+
+.PHONY: app/deploy
+app/deploy/caddyfile/init:
+	@rsync -P ./remote/setup/caddy.sh root@movie-nights.enthys.com:~
+	@ssh -t root@movie-nights.enthys.com 'sh caddy.sh && rm caddy.sh && systemctl restart caddy'
+
+.PHONY: app/deploy/caddyfile
+app/deploy/caddyfile:
+	@echo "Uploading remote/production/movie-nights.Caddyfile to server"
+	@rsync -P ./remote/production/movie-nights.Caddyfile root@movie-nights.enthys.com:/etc/caddy/
+	@echo "Reloading caddy"
+	@ssh -t movie_nights@movie-nights.enthys.com 'sudo systemctl restart caddy'
+	@echo "Caddy has been updated"

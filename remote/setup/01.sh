@@ -48,11 +48,11 @@ MOVIE_NIGHTS_DB_NAME=movie_nights
 MOVIE_NIGHTS_DB_ARGS='sslmode=disable'
 " >> /etc/environment
 
-apt -y install -y debian-keyring debian-archive-keyring apt-transport-https
-curl -L https://dl.cloudsmith.io/public/caddy/stable/gpg.key | sudo apt-key add -
-curl -L https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt | sudo tee -a /etc/apt/sources.list.d/caddy-stable.list
-apt update
-apt -y install caddy
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update
+sudo apt install caddy
 
 echo "Script complete! Rebooting..."
 reboot
