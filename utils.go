@@ -8,6 +8,11 @@ import (
 	"strconv"
 )
 
+func internalErrorResponse(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte("Something went wrong!"))
+}
+
 func extractUser(r *http.Request) *types.User {
 	user, ok := r.Context().Value(UserCtxKey).(*types.User)
 

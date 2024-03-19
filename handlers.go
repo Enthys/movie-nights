@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"movie_night/ui/components"
 	"movie_night/ui/layout"
 	"movie_night/ui/page"
 	"movie_night/validator"
@@ -134,7 +135,18 @@ func createGroupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func groupsHandler(w http.ResponseWriter, r *http.Request) {
-	layout.NewIndex(extractUser(r)).WithBody(page.Groups()).Render(r.Context(), w)
+	user := extractUser(r)
+	userGroups, err := getUserGroups(user)
+	if err != nil {
+		internalErrorResponse(w)
+		return
+	}
+	var groups []components.Group
+	for _, userGroup := range userGroups {
+		groups = append(groups, components.NewGroup(userGroup.Name, userGroup.Description, "foo"))
+	}
+
+	layout.NewIndex(extractUser(r)).WithBody(page.Groups(groups)).Render(r.Context(), w)
 }
 
 func viewGroupHandler(w http.ResponseWriter, r *http.Request) {

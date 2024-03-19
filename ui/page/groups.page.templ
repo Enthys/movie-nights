@@ -4,7 +4,7 @@ import (
     "movie_night/ui/components"
 )
 
-templ Groups() {
+templ Groups(groups []components.Group) {
     <div class="container">
         <div class="row">
             <div class="col-10">
@@ -23,8 +23,12 @@ templ Groups() {
             </div>
         </div>
 
-        for i := 0; i < 5; i++ {
-            @components.NewGroup("foo", "foo", "foo").Render()
+        if len(groups) > 0 {
+            for _, group := range groups {
+                @group.Render()
+            }
+        } else {
+            <div>You are not a part of any groups.</div>
         }
     </div>
 }

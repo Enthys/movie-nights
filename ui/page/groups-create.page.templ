@@ -13,6 +13,8 @@ templ GroupsCreate(v *validator.Validator) {
                     type="text"
                     class={"form-control", templ.KV("border-danger", v.HasError("name"))} 
                     placeholder="Coolest group!" 
+                    minlenght="4"
+                    maxlength="24"
                     required
                  />
                 if v.HasError("name") {
@@ -27,6 +29,7 @@ templ GroupsCreate(v *validator.Validator) {
                     type="text"
                     class={"form-control", templ.KV("border-danger", v.HasError("description"))}
                     placeholder="(Optional)"
+                    maxlength="300"
                     required
                 />
                 if v.HasError("description") {

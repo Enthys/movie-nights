@@ -14,7 +14,7 @@ import (
 	"movie_night/ui/components"
 )
 
-func Groups() templ.Component {
+func Groups(groups []components.Group) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -31,8 +31,15 @@ func Groups() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for i := 0; i < 5; i++ {
-			templ_7745c5c3_Err = components.NewGroup("foo", "foo", "foo").Render().Render(ctx, templ_7745c5c3_Buffer)
+		if len(groups) > 0 {
+			for _, group := range groups {
+				templ_7745c5c3_Err = group.Render().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div>You are not a part of any groups.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
