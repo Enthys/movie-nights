@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"movie_night/types"
 	"net/http"
@@ -11,6 +12,13 @@ import (
 func internalErrorResponse(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte("Something went wrong!"))
+}
+
+func badRequestErrorResponse(w http.ResponseWriter, err map[string]string) {
+	w.WriteHeader(http.StatusBadRequest)
+	if err := json.NewEncoder(w).Encode(err); err != nil {
+		log.Println(err)
+	}
 }
 
 func extractUser(r *http.Request) *types.User {

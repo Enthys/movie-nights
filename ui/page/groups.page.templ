@@ -8,14 +8,26 @@ templ Groups(groups []components.Group) {
     <div class="container">
         <div class="row">
             <div class="col-10">
-                <div class="input-group">
-                    <input 
-                        class="form-control" 
-                        type="text" 
-                        placeholder="Search for group"
-                    />
-                    <button class="btn btn-outline-secondary">Search</button>
-                </div>
+                <form>
+                    <div class="input-group">
+                        <input 
+                            class="form-control"
+                            id="group-name-search"
+                            name="name"
+                            type="text" 
+                            placeholder="Search for group"
+                        />
+
+                        <button type="button" class="btn btn-outline-secondary"
+                            hx-get="/groups/search"
+                            hx-target="#groups-collection"
+                            hx-include="[name='name']"
+                            hx-swap="innerHTML"
+                        >
+                            Search
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <div class="col-2">
@@ -23,12 +35,8 @@ templ Groups(groups []components.Group) {
             </div>
         </div>
 
-        if len(groups) > 0 {
-            for _, group := range groups {
-                @group.Render()
-            }
-        } else {
-            <div>You are not a part of any groups.</div>
-        }
+        <div id="groups-collection">
+            @components.GroupCollection(groups, "You are not a part of any groups.")
+        </div>
     </div>
 }

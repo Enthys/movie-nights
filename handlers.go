@@ -18,6 +18,7 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.Handle("GET /logout", userAuthenticated(logoutHandler))
 	mux.Handle("GET /avatar", userAuthenticated(avatarHandler))
 	mux.Handle("GET /groups", userAuthenticated(groupsHandler))
+	mux.Handle("GET /groups/search", userAuthenticated((searchGroupsHandler)))
 	mux.Handle("GET /groups/create", userAuthenticated(createGroupFormHandler))
 	mux.Handle("POST /groups", userAuthenticated(createGroupHandler))
 	mux.Handle("GET /groups/{id}", userAuthenticated(viewGroupHandler))
@@ -151,6 +152,35 @@ func groupsHandler(w http.ResponseWriter, r *http.Request) {
 
 func viewGroupHandler(w http.ResponseWriter, r *http.Request) {
 	layout.NewIndex(extractUser(r)).WithBody(page.ViewGroup()).Render(r.Context(), w)
+}
+
+func searchGroupsHandler(w http.ResponseWriter, r *http.Request) {
+	groupNameSearch := r.URL.Query().Get("name")
+	if groupNameSearch == "" {
+		badRequestErrorResponse(w, map[string]string{
+			"name": "name should not be empty",
+		})
+		return
+	}
+	if len(groupNameSearch) > 300 {
+		badRequestErrorResponse(w, map[string]string{
+			"name": "name is too long",
+		})
+		return
+	}
+
+	foundGroups, err := searchGroupsByName(groupNameSearch)
+	if err != nil {
+		internalErrorResponse(w)
+		return
+	}
+
+	var groups []components.Group
+	for _, foundGroup := range foundGroups {
+		groups = append(groups, components.NewGroup(foundGroup.Name, foundGroup.Description, ""))
+	}
+
+	components.GroupCollection(groups, "You are not a part of any groups.").Render(r.Context(), w)
 }
 
 func myMoviesHandler(w http.ResponseWriter, r *http.Request) {

@@ -27,24 +27,15 @@ func Groups(groups []components.Group) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"container\"><div class=\"row\"><div class=\"col-10\"><div class=\"input-group\"><input class=\"form-control\" type=\"text\" placeholder=\"Search for group\"> <button class=\"btn btn-outline-secondary\">Search</button></div></div><div class=\"col-2\"><a href=\"/groups/create\"><button class=\"btn btn-success\">Create group</button></a></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"container\"><div class=\"row\"><div class=\"col-10\"><form><div class=\"input-group\"><input class=\"form-control\" id=\"group-name-search\" name=\"name\" type=\"text\" placeholder=\"Search for group\"> <button type=\"button\" class=\"btn btn-outline-secondary\" hx-get=\"/groups/search\" hx-target=\"#groups-collection\" hx-include=\"[name=&#39;name&#39;]\" hx-swap=\"innerHTML\">Search</button></div></form></div><div class=\"col-2\"><a href=\"/groups/create\"><button class=\"btn btn-success\">Create group</button></a></div></div><div id=\"groups-collection\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if len(groups) > 0 {
-			for _, group := range groups {
-				templ_7745c5c3_Err = group.Render().Render(ctx, templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-		} else {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div>You are not a part of any groups.</div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
+		templ_7745c5c3_Err = components.GroupCollection(groups, "You are not a part of any groups.").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
