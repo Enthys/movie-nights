@@ -21,6 +21,13 @@ func badRequestErrorResponse(w http.ResponseWriter, err map[string]string) {
 	}
 }
 
+func conflictErrorResponse(w http.ResponseWriter, reason string) {
+	w.WriteHeader(http.StatusConflict)
+	if err := json.NewEncoder(w).Encode(map[string]string{"error": reason}); err != nil {
+		log.Println()
+	}
+}
+
 func extractUser(r *http.Request) *types.User {
 	user, ok := r.Context().Value(UserCtxKey).(*types.User)
 

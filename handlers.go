@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"movie_night/ui/components"
@@ -8,6 +9,7 @@ import (
 	"movie_night/ui/page"
 	"movie_night/validator"
 	"net/http"
+	"strings"
 
 	"github.com/markbates/goth/gothic"
 )
@@ -108,11 +110,10 @@ func createGroupFormHandler(w http.ResponseWriter, r *http.Request) {
 
 func createGroupHandler(w http.ResponseWriter, r *http.Request) {
 	user := extractUser(r)
-	name := r.FormValue("name")
-	description := r.FormValue("description")
+	name := strings.Trim(r.FormValue("name"), " ")
+	description := strings.Trim(r.FormValue("description"), " ")
 
 	v := validator.New()
-	fmt.Println(len(name))
 	v.Check(len(name) > 3 && len(name) < 25, "name", "Group name has to be at least 4 characters and at most 24 characters long.")
 	v.Check(len(description) <= 300, "description", "Description should be at most 300 characters long.")
 
@@ -122,10 +123,24 @@ func createGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	existingGroup, err := getGroupByName(name)
+	if err != nil && !errors.Is(err, ErrGroupNotFound) {
+		fmt.Println(err)
+		internalErrorResponse(w)
+		return
+	}
+
+	if existingGroup != nil {
+		// TODO: Rerender create group page with errors and values set
+		conflictErrorResponse(w, "group name is already taken")
+		return
+	}
+
 	newGroup, err := createGroup(name, description, user.ID)
 
 	if err != nil {
-		fmt.Println(err)
+		internalErrorResponse(w)
+		return
 	}
 
 	if err = addUserToGroup(user.ID, newGroup.ID); err != nil {

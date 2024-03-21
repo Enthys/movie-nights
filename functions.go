@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	ErrUserNotFound = errors.New("user not found")
-	ErrConflict     = errors.New("conflict occurred")
+	ErrUserNotFound  = errors.New("user not found")
+	ErrGroupNotFound = errors.New("group not found")
+	ErrConflict      = errors.New("conflict occurred")
 )
 
 func getOrCreateUser(socialId, firstName, lastName, avatarURL string) (*types.User, error) {
@@ -86,6 +87,25 @@ func createGroup(name, description string, creatorId int) (*types.Group, error) 
 	defer cancel()
 
 	if err := db.QueryRowContext(ctx, query, name, description, creatorId).Scan(&group.ID); err != nil {
+		return nil, err
+	}
+
+	return &group, nil
+}
+
+func getGroupByName(name string) (*types.Group, error) {
+	var group types.Group
+
+	query := `SELECT id, name, description, created_by FROM groups WHERE name = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := db.QueryRowContext(ctx, query, name).Scan(&group.ID, &group.Name, &group.Description, &group.CreatedBy); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrGroupNotFound
+		}
+
 		return nil, err
 	}
 
