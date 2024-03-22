@@ -2,9 +2,12 @@ package page
 
 import "movie_night/validator"
 
-templ GroupsCreate(v *validator.Validator) {
+templ GroupsCreate(vals map[string]string, v *validator.Validator) {
     <div class="container">
-        <form class="needs-validation" method="POST" action="/groups" novalidate>
+        if v.HasError("internal") {
+            <div class="text-danger">{ v.Errors["internal"] }</div>
+        }
+        <form class="needs-validation" method="POST" action="/groups/create" novalidate>
             <legend>Create new group</legend>
             <div class="mb-3">
                 <label class="form-label">Group name</label>
@@ -16,6 +19,9 @@ templ GroupsCreate(v *validator.Validator) {
                     minlenght="4"
                     maxlength="24"
                     required
+                    if val, ok := vals["name"]; ok {
+                        value={val}
+                    }
                  />
                 if v.HasError("name") {
                     <div class="text-danger">{ v.Errors["name"] }</div>
@@ -31,6 +37,9 @@ templ GroupsCreate(v *validator.Validator) {
                     placeholder="(Optional)"
                     maxlength="300"
                     required
+                    if val, ok := vals["description"]; ok {
+                        value={val}
+                    }
                 />
                 if v.HasError("description") {
                     <div class="text-danger">{ v.Errors["description"] }</div>

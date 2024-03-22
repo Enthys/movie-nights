@@ -22,7 +22,7 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.Handle("GET /groups", userAuthenticated(groupsHandler))
 	mux.Handle("GET /groups/search", userAuthenticated((searchGroupsHandler)))
 	mux.Handle("GET /groups/create", userAuthenticated(createGroupFormHandler))
-	mux.Handle("POST /groups", userAuthenticated(createGroupHandler))
+	mux.Handle("POST /groups/create", userAuthenticated(createGroupHandler))
 	mux.Handle("GET /groups/{id}", userAuthenticated(viewGroupHandler))
 	mux.Handle("GET /movies", userAuthenticated(myMoviesHandler))
 
@@ -105,7 +105,7 @@ func avatarHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupFormHandler(w http.ResponseWriter, r *http.Request) {
-	layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(validator.New())).Render(r.Context(), w)
+	layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(nil, validator.New())).Render(r.Context(), w)
 }
 
 func createGroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,32 +118,33 @@ func createGroupHandler(w http.ResponseWriter, r *http.Request) {
 	v.Check(len(description) <= 300, "description", "Description should be at most 300 characters long.")
 
 	if !v.Valid() {
-		layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(v)).Render(r.Context(), w)
 		w.WriteHeader(http.StatusBadRequest)
+		layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(map[string]string{"name": name, "description": description}, v)).Render(r.Context(), w)
 		return
 	}
 
 	existingGroup, err := getGroupByName(name)
 	if err != nil && !errors.Is(err, ErrGroupNotFound) {
-		fmt.Println(err)
-		internalErrorResponse(w)
+		v.AddError("internal", "Something went wrong, try again later.")
+		layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(map[string]string{"name": name, "description": description}, v)).Render(r.Context(), w)
 		return
 	}
 
 	if existingGroup != nil {
-		// TODO: Rerender create group page with errors and values set
-		conflictErrorResponse(w, "group name is already taken")
+		v.AddError("name", "Group name is already taken.")
+		layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(map[string]string{"name": name, "description": description}, v)).Render(r.Context(), w)
 		return
 	}
 
 	newGroup, err := createGroup(name, description, user.ID)
-
 	if err != nil {
-		internalErrorResponse(w)
+		v.AddError("internal", "Something went wrong, try again later.")
+		layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(map[string]string{"name": name, "description": description}, v)).Render(r.Context(), w)
 		return
 	}
 
 	if err = addUserToGroup(user.ID, newGroup.ID); err != nil {
+		// Todo: rollback group creation if user was not added to group.
 		fmt.Println(err)
 	}
 
