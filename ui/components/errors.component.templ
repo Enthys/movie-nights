@@ -1,0 +1,9 @@
+package components
+
+templ Errors(err map[string]string) {
+    <ul class="b-danger container">
+        for k, v := range err {
+            <li>{k} - {v}</li>
+        }
+    </ul>
+}

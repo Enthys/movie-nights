@@ -3,7 +3,7 @@ module movie_night
 go 1.22.0
 
 require (
-	github.com/a-h/templ v0.2.639
+	github.com/a-h/templ v0.2.648
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.2.2
 	github.com/joho/godotenv v1.5.1

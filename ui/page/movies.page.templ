@@ -12,14 +12,22 @@ templ Movies() {
 
         <div class="row mb-3">
             <div class="col-12 offset-0 offset-sm-2 col-sm-8">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Movie IMDb link" />
-                    <button type="button" class="btn btn-outline-success">Add</button>
-                </div>
+                <form class="input-group" hx-ext="response-targets">
+                    <input name="url" type="text" class="form-control" placeholder="Movie IMDb link" />
+                    <button 
+                        type="submit" 
+                        class="btn btn-outline-success"
+                        hx-post="/movies/add" 
+                        hx-target-4*="#create-error"
+                    >Add</button>
+                </form>
             </div>
         </div>
 
-        <div class="row">
+        <div id="create-error">
+            REPLACE ME PLS
+        </div>
+        <div id="group-movies" class="row">
         for i := 0; i < 10; i++ {
             @components.NewMovie("foo", "foo", "foo", []string{}).Render()
         }

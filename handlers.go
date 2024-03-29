@@ -25,6 +25,7 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.Handle("POST /groups/create", userAuthenticated(createGroupHandler))
 	mux.Handle("GET /groups/{id}", userAuthenticated(viewGroupHandler))
 	mux.Handle("GET /movies", userAuthenticated(myMoviesHandler))
+	mux.Handle("POST /movies/add", userAuthenticated(addMovieHandler))
 
 	staticDir := "."
 	mux.Handle("GET /assets/", http.FileServer(http.Dir(staticDir)))
@@ -203,54 +204,23 @@ func myMoviesHandler(w http.ResponseWriter, r *http.Request) {
 	layout.NewIndex(extractUser(r)).WithBody(page.Movies()).Render(r.Context(), w)
 }
 
-// func searchGroupsHandler(w http.ResponseWriter, r *http.Request) {
-// 	name := r.FormValue("name")
+type AddMovieRequest struct {
+	MovieUrl string
+}
 
-// 	foundGroups, err := searchGroupsByName(name)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+func addMovieHandler(w http.ResponseWriter, r *http.Request) {
+	url := r.PostForm.Get("url")
 
-// 	var groups []page.Group
-// 	for _, foundGroup := range foundGroups {
-// 		groups = append(groups, page.Group{
-// 			Name: foundGroup.Name,
-// 		})
-// 	}
+	v := validator.New()
+	v.Check(len(url) > 0, "url", "url is required")
+	v.Check(strings.HasPrefix(url, "https://imdb.com/title"), "url", "invalid IMDB link provided")
 
-// 	page.GroupCollection("found-groups", groups).Render(r.Context(), w)
-// }
+	if !v.Valid() {
+		w.WriteHeader(http.StatusBadRequest)
+		components.Errors(v.Errors).Render(r.Context(), w)
+		return
+	}
 
-// func dashboardHandler(w http.ResponseWriter, r *http.Request) {
-// 	user := r.Context().Value(userCtxKey).(*types.User)
-
-// 	userGroups, err := getUserGroups(user)
-// 	if err != nil {
-// 		fmt.Fprintln(w, "Something went terribly wrong")
-// 		return
-// 	}
-
-// 	var groups []page.Group
-// 	for _, userGroup := range userGroups {
-// 		groups = append(groups, page.Group{
-// 			Name: userGroup.Name,
-// 		})
-// 	}
-
-// 	layout.IndexLayout{
-// 		Authenticated: true,
-// 	}.Layout(
-// 		user,
-// 		page.Dashboard(
-// 			groups,
-// 			[]page.Movie{
-// 				{Name: "American Psycho", AddedDate: time.Now()},
-// 				{Name: "American Psycho", AddedDate: time.Now()},
-// 				{Name: "American Psycho", AddedDate: time.Now()},
-// 				{Name: "American Psycho", AddedDate: time.Now()},
-// 				{Name: "American Psycho", AddedDate: time.Now()},
-// 				{Name: "American Psycho", AddedDate: time.Now()},
-// 				{Name: "American Psycho", AddedDate: time.Now()},
-// 			},
-// 		)).Render(r.Context(), w)
-// }
+	w.WriteHeader(http.StatusOK)
+	components.NewMovie("Foo", "Bar", "asd", []string{}).Render().Render(r.Context(), w)
+}
