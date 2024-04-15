@@ -1,28 +1,30 @@
 package types
 
 type User struct {
-	ID        int
-	SocialId  string
-	Name      string
-	AvatarURL string
+	ID        int    `json:"id"`
+	SocialId  string `json:"-"`
+	Name      string `json:"name"`
+	AvatarURL string `json:"-"`
 }
 
 type Movie struct {
-	ID       int
-	IMDBLink string
-	Genres   []string
-	AddedBy  int
+	ID          int      `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	IMDBLink    string   `json:"imdbLink"`
+	Genres      []string `json:"genres"`
+	AddedBy     int      `json:"addedBy"`
 }
 
 type MovieRating struct {
-	ID      int
-	MovieID int
-	Rating  int
+	ID      int `json:"id"`
+	MovieID int `json:"movieId"`
+	Rating  int `json:"rating"`
 }
 
 type Group struct {
-	ID          int
-	Name        string
-	Description string
-	CreatedBy   int
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	CreatedBy   int    `json:"createdBy"`
 }

@@ -1,5 +1,3 @@
-version: "3.7"
-
 volumes:
   database_vol:
 
@@ -10,6 +8,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     volumes:
+      - /home/app/client/node_modules/
+      - /home/app/client/dist/
       - .:/home/app
     ports:
       - "5000:80"

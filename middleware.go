@@ -41,14 +41,15 @@ func userAuthenticated(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, err := store.Get(r, sessionCookieKey)
 		if err != nil {
-			w.WriteHeader(500)
-			w.Write([]byte("something went wrong!"))
+			writeJSON(w, http.StatusInternalServerError, envelope{"error": "something went wrong"}, nil)
 			log.Println("failed to retrieve user session. ", err)
 			return
 		}
 
 		if _, ok := u.Values[sk_authenticated]; !ok {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			writeJSON(w, http.StatusUnauthorized, envelope{
+				"error": "not logged in",
+			}, nil)
 			return
 		}
 

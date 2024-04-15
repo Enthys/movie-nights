@@ -2,6 +2,8 @@ include .env.example
 -include .env
 export
 
+MOVIENIGHT_DB_DSN=postgres://${MOVIE_NIGHTS_DB_USER}:${MOVIE_NIGHTS_DB_PASS}@${MOVIE_NIGHTS_DB_HOST}:${MOVIE_NIGHTS_DB_PORT}/${MOVIE_NIGHTS_DB_NAME}?${MOVIE_NIGHTS_DB_ARGS}
+
 default: help
 
 ## help: prints this help message
