@@ -4,4 +4,5 @@ export default interface Movie {
   description: string;
   imdbLink: string;
   genres: string[];
+  avatar?: string;
 }

@@ -3,11 +3,16 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"movie_night/types"
+	"net/http"
+	"net/url"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/lib/pq"
 )
 
@@ -250,4 +255,71 @@ func getUserMovies(user *types.User, page int, nameSearch string) ([]*types.Movi
 	}
 
 	return movies, nil
+}
+
+func getMovieFromIMDB(link string) (*types.Movie, error) {
+	req, err := http.NewRequest(http.MethodGet, link, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request. %w", err)
+	}
+
+	req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed. %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("invalid status code returned: %d", resp.StatusCode)
+	}
+
+	movie := types.Movie{}
+	doc, _ := goquery.NewDocumentFromReader(resp.Body)
+	if sel := doc.Find(".hero__primary-text"); sel.Length() == 0 {
+		return nil, fmt.Errorf("failed to retrieve movie title")
+	} else {
+		movie.Name = sel.Text()
+	}
+
+	if sel := doc.Find("span[data-testid=\"plot-xs_to_m\"]"); sel.Length() == 0 {
+		return nil, fmt.Errorf("failed to retrieve movie description")
+	} else {
+		movie.Description = sel.Text()
+	}
+
+	if sel := doc.Find(`div[data-testid="genres"] span.ipc-chip__text`); sel.Length() == 0 {
+		return nil, fmt.Errorf("failed to retrieve movie genres")
+	} else {
+		sel.Map(func(i int, s *goquery.Selection) string {
+			fmt.Println(i, s.Text())
+			return s.Text()
+		})
+		movie.Genres = append(movie.Genres, sel.Map(func(i int, s *goquery.Selection) string { return s.Text() })...)
+	}
+
+	posterReq, err := http.NewRequest(http.MethodGet, "https://api.themoviedb.org/3/search/movie?api_key=15d2ea6d0dc1d476efbca3eba2b9bbfb&query="+url.QueryEscape(movie.Name), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create movie poster retrieval request. %w", err)
+	}
+
+	posterResp, err := http.DefaultClient.Do(posterReq)
+	if err != nil {
+		return nil, fmt.Errorf("request for poster retrieval failed. %w", err)
+	}
+
+	var result struct {
+		Results []struct {
+			PosterPath string `json:"poster_path"`
+		} `json:"results"`
+	}
+
+	posterBody, _ := io.ReadAll(posterResp.Body)
+	if err = json.Unmarshal(posterBody, &result); err != nil {
+		return nil, fmt.Errorf("failed to retrieve poster address. %w", err)
+	}
+
+	movie.AvatarLink = "http://image.tmdb.org/t/p/w500" + result.Results[0].PosterPath
+
+	return &movie, nil
 }

@@ -11,7 +11,7 @@ export default function Movie({ movie }: MovieParams) {
                 <div className="row justify-content-around">
                     <img
                         className="img-fluid rounded-start col-sm-2 col-5"
-                        src="/assets/images/movie_thumbnail.jpeg"
+                        src={movie.avatar}
                         style={{objectFit: "contain", maxHeight: "250px"}}
                     />
                     <div className="col-sm-10 col-7">
@@ -24,10 +24,6 @@ export default function Movie({ movie }: MovieParams) {
                         </p>
                         <p>
                             {movie.genres.map((genre) => <span className="badge bg-secondary">{genre}</span>)}
-                            <span className="badge bg-secondary">Horror</span>
-                            <span className="badge bg-secondary">Horror</span>
-                            <span className="badge bg-secondary">Horror</span>
-                            <span className="badge bg-secondary">Horror</span>
                         </p>
                         <div className="row justify-content-around">
                             <button type="button" className="col-5 col-sm-3 col-md-4 col-lg-3 btn btn-primary">IMDb</button>

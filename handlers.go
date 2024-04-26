@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"movie_night/ui/components"
 	"movie_night/ui/layout"
 	"movie_night/ui/page"
 	"movie_night/validator"
@@ -29,7 +28,7 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.Handle("POST /api/groups", userAuthenticated(createGroupHandler))
 	mux.Handle("GET /api/groups/{id}", userAuthenticated(viewGroupHandler))
 	mux.Handle("GET /api/movies", userAuthenticated(getMoviesHandler))
-	mux.Handle("POST /api/movies/add", userAuthenticated(addMovieHandler))
+	mux.Handle("POST /api/movies", userAuthenticated(addMovieHandler))
 
 	staticDir := "./client/dist/"
 	fs := http.FileServer(http.Dir(staticDir))
@@ -293,22 +292,39 @@ func getMoviesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type AddMovieRequest struct {
-	MovieUrl string
+	MovieLink string `json:"link"`
 }
 
 func addMovieHandler(w http.ResponseWriter, r *http.Request) {
-	url := r.PostForm.Get("url")
+	var req AddMovieRequest
+	if err := readJSON(w, r, &req); err != nil {
+		badRequestErrorResponse(w, envelope{"error": "invalid request"})
+		return
+	}
+	link := req.MovieLink
 
 	v := validator.New()
-	v.Check(len(url) > 0, "url", "url is required")
-	v.Check(strings.HasPrefix(url, "https://imdb.com/title"), "url", "invalid IMDB link provided")
+	v.Check(len(link) > 0, "link", "link is required")
+	v.Check(strings.HasPrefix(link, "https://www.imdb.com/title") || strings.HasPrefix(link, "https://imdb.com/title"), "link", "invalid IMDB link provided")
 
 	if !v.Valid() {
-		w.WriteHeader(http.StatusBadRequest)
-		components.Errors(v.Errors).Render(r.Context(), w)
+		validationErrorResponse(w, v)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	components.NewMovie("Foo", "Bar", "asd", []string{}).Render().Render(r.Context(), w)
+	user := extractUser(r)
+	movie, err := getMovieFromIMDB(link)
+	if err != nil {
+		log.Println(err)
+		internalErrorResponse(w)
+		return
+	}
+	movie.ID = 1
+	movie.IMDBLink = link
+	movie.AddedBy = user.ID
+
+	if err := writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil); err != nil {
+		log.Println(err)
+		internalErrorResponse(w)
+	}
 }
