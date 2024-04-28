@@ -1,0 +1,1 @@
+ALTER TABLE movies ADD COLUMN avatar_link TEXT NOT NULL DEFAULT '/assets/images/no_poster.jpeg';

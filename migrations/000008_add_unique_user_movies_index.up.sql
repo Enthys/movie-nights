@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX unique_user_movies ON user_movies (user_id, movie_id);

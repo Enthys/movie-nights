@@ -23,7 +23,6 @@ async function getCurrentUser(): Promise<User> {
       });
 
     resp.then((data) => {
-      console.log(data);
       resolve(data.user);
     });
   });
@@ -39,7 +38,7 @@ export default function Navigation() {
       })
       .catch((err) => {
         if (!(err instanceof UserNotLoggedError)) {
-          console.log("An error occurred while retrieving the current user. ", err)
+          console.error("An error occurred while retrieving the current user. ", err)
         }
         redirect("/");
       }).finally(() => {

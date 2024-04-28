@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"movie_night/ui/layout"
-	"movie_night/ui/page"
 	"movie_night/validator"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -24,7 +23,6 @@ func setupHandlers(mux *http.ServeMux) {
 	mux.Handle("GET /api/avatar", userAuthenticated(avatarHandler))
 	mux.Handle("GET /api/groups", userAuthenticated(groupsHandler))
 	mux.Handle("GET /api/groups/search", userAuthenticated((searchGroupsHandler)))
-	mux.Handle("GET /api/groups/create", userAuthenticated(createGroupFormHandler))
 	mux.Handle("POST /api/groups", userAuthenticated(createGroupHandler))
 	mux.Handle("GET /api/groups/{id}", userAuthenticated(viewGroupHandler))
 	mux.Handle("GET /api/movies", userAuthenticated(getMoviesHandler))
@@ -142,10 +140,6 @@ func avatarHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.Copy(w, resp.Body)
-}
-
-func createGroupFormHandler(w http.ResponseWriter, r *http.Request) {
-	layout.NewIndex(extractUser(r)).WithBody(page.GroupsCreate(nil, validator.New())).Render(r.Context(), w)
 }
 
 type CreateGroupRequest struct {
@@ -293,6 +287,7 @@ func getMoviesHandler(w http.ResponseWriter, r *http.Request) {
 
 type AddMovieRequest struct {
 	MovieLink string `json:"link"`
+	GroupId   *int   `json:"groupId"`
 }
 
 func addMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -307,21 +302,60 @@ func addMovieHandler(w http.ResponseWriter, r *http.Request) {
 	v.Check(len(link) > 0, "link", "link is required")
 	v.Check(strings.HasPrefix(link, "https://www.imdb.com/title") || strings.HasPrefix(link, "https://imdb.com/title"), "link", "invalid IMDB link provided")
 
+	movieUrl, err := url.Parse(link)
+	if err != nil {
+		v.Check(false, "link", "invalid IMDB link provided")
+	}
+
 	if !v.Valid() {
 		validationErrorResponse(w, v)
 		return
 	}
 
+	link = strings.Trim("https://"+movieUrl.Host+movieUrl.Path, "/")
+
+	existingMovie, err := getMovieByLink(link)
+	if err != nil && !errors.Is(err, ErrMovieNotFound) {
+		log.Println(err)
+		internalErrorResponse(w)
+		return
+	}
+
 	user := extractUser(r)
+
+	if existingMovie != nil {
+		if err = addToUserMovies(user.ID, existingMovie.ID); err != nil {
+			log.Println(err)
+			internalErrorResponse(w)
+			return
+		}
+
+		if err := writeJSON(w, http.StatusOK, envelope{"movie": existingMovie}, nil); err != nil {
+			log.Println(err)
+			internalErrorResponse(w)
+		}
+		return
+	}
+
 	movie, err := getMovieFromIMDB(link)
 	if err != nil {
 		log.Println(err)
 		internalErrorResponse(w)
 		return
 	}
-	movie.ID = 1
-	movie.IMDBLink = link
+
 	movie.AddedBy = user.ID
+	if err = saveMovie(movie); err != nil {
+		log.Println(err)
+		internalErrorResponse(w)
+		return
+	}
+
+	if err = addToUserMovies(user.ID, movie.ID); err != nil {
+		log.Println(err)
+		internalErrorResponse(w)
+		return
+	}
 
 	if err := writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil); err != nil {
 		log.Println(err)

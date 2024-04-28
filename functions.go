@@ -10,6 +10,7 @@ import (
 	"movie_night/types"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,6 +20,7 @@ import (
 var (
 	ErrUserNotFound  = errors.New("user not found")
 	ErrGroupNotFound = errors.New("group not found")
+	ErrMovieNotFound = errors.New("movie not found")
 	ErrConflict      = errors.New("conflict occurred")
 )
 
@@ -226,17 +228,17 @@ func getUserMovies(user *types.User, page int, nameSearch string) ([]*types.Movi
 	movies := []*types.Movie{}
 
 	query := `
-		SELECT movies.id, movies.movie_name, movies.movie_description, movies.imdb_link, movies.genres FROM movies as movies
+		SELECT movies.id, movies.movie_name, movies.movie_description, movies.imdb_link, movies.rating, movies.avatar_link, movies.genres FROM movies as movies
 		JOIN user_movies as user_movies ON user_movies.movie_id = movies.id
 		WHERE user_movies.user_id = $1
-		AND (to_tsvector('simple', movie_name) @@ plainto_tsquery('simple', $2) OR $2 = '')
+		AND (to_tsvector('simple', movies.movie_name) @@ plainto_tsquery('simple', $2) OR $2 = '')
 		LIMIT $3 OFFSET $4
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := db.QueryContext(ctx, query, user.ID, nameSearch, 10, page*10)
+	rows, err := db.QueryContext(ctx, query, user.ID, nameSearch, 10, (page-1)*10)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +246,15 @@ func getUserMovies(user *types.User, page int, nameSearch string) ([]*types.Movi
 
 	for rows.Next() {
 		var movie types.Movie
-		if err = rows.Scan(&movie.ID, &movie.Name, &movie.Description, &movie.IMDBLink, pq.Array(&movie.Genres)); err != nil {
+		if err = rows.Scan(
+			&movie.ID,
+			&movie.Name,
+			&movie.Description,
+			&movie.IMDBLink,
+			&movie.IMDBRating,
+			&movie.AvatarLink,
+			pq.Array(&movie.Genres),
+		); err != nil {
 			return nil, err
 		}
 		movies = append(movies, &movie)
@@ -257,6 +267,33 @@ func getUserMovies(user *types.User, page int, nameSearch string) ([]*types.Movi
 	return movies, nil
 }
 
+func getMovieByLink(link string) (*types.Movie, error) {
+	query := `SELECT id, imdb_link, movie_name, movie_description, avatar_link, rating, genres FROM movies WHERE imdb_link = $1 LIMIT 1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var movie types.Movie
+	if err := db.QueryRowContext(ctx, query, link).Scan(
+		&movie.ID,
+		&movie.IMDBLink,
+		&movie.Name,
+		&movie.Description,
+		&movie.AvatarLink,
+		&movie.IMDBRating,
+		pq.Array(&movie.Genres),
+	); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrMovieNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &movie, nil
+}
+
 func getMovieFromIMDB(link string) (*types.Movie, error) {
 	req, err := http.NewRequest(http.MethodGet, link, nil)
 	if err != nil {
@@ -264,6 +301,7 @@ func getMovieFromIMDB(link string) (*types.Movie, error) {
 	}
 
 	req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+	req.Header.Add("Accept-Language", "en-US,en;q=0.9,bg;q=0.8,sv;q=0.7")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -274,9 +312,13 @@ func getMovieFromIMDB(link string) (*types.Movie, error) {
 		return nil, fmt.Errorf("invalid status code returned: %d", resp.StatusCode)
 	}
 
-	movie := types.Movie{}
+	movie := types.Movie{
+		IMDBLink: link,
+		Genres:   []string{},
+	}
+
 	doc, _ := goquery.NewDocumentFromReader(resp.Body)
-	if sel := doc.Find(".hero__primary-text"); sel.Length() == 0 {
+	if sel := doc.Find("[data-testid=\"hero__pageTitle\"]"); sel.Length() == 0 {
 		return nil, fmt.Errorf("failed to retrieve movie title")
 	} else {
 		movie.Name = sel.Text()
@@ -288,14 +330,21 @@ func getMovieFromIMDB(link string) (*types.Movie, error) {
 		movie.Description = sel.Text()
 	}
 
+	if sel := doc.Find("div[data-testid=\"hero-rating-bar__aggregate-rating__score\"] span:first-child"); sel.Length() == 0 {
+		return nil, fmt.Errorf("failed to retrieve movie rating")
+	} else {
+		rating, err := strconv.ParseFloat(sel.First().Text(), 32)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse found movie rating. %w", err)
+		}
+
+		movie.IMDBRating = float32(rating)
+	}
+
 	if sel := doc.Find(`div[data-testid="genres"] span.ipc-chip__text`); sel.Length() == 0 {
 		return nil, fmt.Errorf("failed to retrieve movie genres")
 	} else {
-		sel.Map(func(i int, s *goquery.Selection) string {
-			fmt.Println(i, s.Text())
-			return s.Text()
-		})
-		movie.Genres = append(movie.Genres, sel.Map(func(i int, s *goquery.Selection) string { return s.Text() })...)
+		sel.Each(func(i int, s *goquery.Selection) { movie.Genres = append(movie.Genres, s.Text()) })
 	}
 
 	posterReq, err := http.NewRequest(http.MethodGet, "https://api.themoviedb.org/3/search/movie?api_key=15d2ea6d0dc1d476efbca3eba2b9bbfb&query="+url.QueryEscape(movie.Name), nil)
@@ -319,7 +368,50 @@ func getMovieFromIMDB(link string) (*types.Movie, error) {
 		return nil, fmt.Errorf("failed to retrieve poster address. %w", err)
 	}
 
-	movie.AvatarLink = "http://image.tmdb.org/t/p/w500" + result.Results[0].PosterPath
+	if len(result.Results) > 0 {
+		movie.AvatarLink = "http://image.tmdb.org/t/p/w500" + result.Results[0].PosterPath
+	} else {
+		movie.AvatarLink = "/assets/images/no_poster.jpeg"
+	}
 
 	return &movie, nil
+}
+
+func saveMovie(movie *types.Movie) error {
+	query := `INSERT INTO movies (imdb_link, movie_name, movie_description, avatar_link, rating, genres) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := db.QueryRowContext(
+		ctx,
+		query,
+		movie.IMDBLink,
+		movie.Name,
+		movie.Description,
+		movie.AvatarLink,
+		movie.IMDBRating,
+		pq.Array(movie.Genres),
+	).Scan(&movie.ID); err != nil {
+		return fmt.Errorf("failed to save movie to database. %w", err)
+	}
+
+	return nil
+}
+
+func addToUserMovies(userId int, movieId int) error {
+	query := `INSERT INTO user_movies(user_id, movie_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if _, err := db.ExecContext(
+		ctx,
+		query,
+		userId,
+		movieId,
+	); err != nil {
+		return fmt.Errorf("failed to save movie to database. %w", err)
+	}
+
+	return nil
 }

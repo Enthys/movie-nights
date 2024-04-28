@@ -15,16 +15,16 @@ export default function Movie({ movie }: MovieParams) {
                         style={{objectFit: "contain", maxHeight: "250px"}}
                     />
                     <div className="col-sm-10 col-7">
-                        <h5 className="card-title">{movie.name}</h5>
+                        <h5 className="card-title">{movie.name} <span style={{color: "#a38d00"}}>({movie.imdbRating}/10)</span></h5>
+
                         <p className="card-text">
                             {movie.description}
-                            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
-                            industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type
-                            and scrambled it to make a type specimen book. It has survive
                         </p>
-                        <p>
-                            {movie.genres.map((genre) => <span className="badge bg-secondary">{genre}</span>)}
-                        </p>
+
+                        <div className="d-flex justify-content-start mb-2">
+                            {movie.genres.map((genre) => (<div className="badge bg-secondary me-1">{genre}</div>))}
+                        </div>
+
                         <div className="row justify-content-around">
                             <button type="button" className="col-5 col-sm-3 col-md-4 col-lg-3 btn btn-primary">IMDb</button>
                             <button type="button" className="col-5 col-sm-3 col-md-4 ms-1 me-3 btn btn-success">Select</button>

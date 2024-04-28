@@ -11,9 +11,10 @@ type Movie struct {
 	ID          int      `json:"id"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
-	IMDBLink    string   `json:"imdbLink"`
-	AvatarLink  string   `json:"avatar"`
 	Genres      []string `json:"genres"`
+	IMDBLink    string   `json:"imdbLink"`
+	IMDBRating  float32  `json:"imdbRating"`
+	AvatarLink  string   `json:"avatar"`
 	AddedBy     int      `json:"addedBy"`
 }
 

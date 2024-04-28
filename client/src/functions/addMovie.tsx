@@ -9,9 +9,16 @@ export default function addMovie(link: string): Promise<IMovie> {
                 'Content-Type': 'application/json',
             },
         })
-            .then(resp => resp.json())
-            .catch(reject)
-                .then((data: { movie: IMovie }) => resolve(data.movie))
-                .catch(reject)
+        .then(resp => {
+            resp.json().then((data: { movie: IMovie, errors?: { link: string} }) => {
+                console.log(data)
+                if (data.errors !== undefined) {
+                    reject(data.errors.link)
+                    return
+                }
+
+                resolve(data.movie)
+            })
+        })
     })
 }

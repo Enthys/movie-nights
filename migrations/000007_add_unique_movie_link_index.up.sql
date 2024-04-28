@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX unique_movie_link ON movies (imdb_link) 

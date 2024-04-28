@@ -1,17 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Movie from '../components/Movie';
 import { default as IMovie } from '../types/movie';
 import MovieSearch from '../components/MovieSearch';
 import MovieAdd from '../components/MovieAdd';
+import getMovies from '../functions/getMovies';
 
 export default function Movies() {
     const [error, setError] = useState('');
     const [movies, setMovies] = useState([] as IMovie[]);
 
     const movieAdded = (movie: IMovie) => {
-        movies.pop()
+        console.log("movies has been added", movie)
+        if (movies.length > 10) {
+            movies.pop()
+        }
+
         setMovies([movie, ...movies])
     }
+
+    useEffect(() => {
+        (() => {
+            getMovies('').then(setMovies).catch(setError)
+        })();
+    }, [])
+
 
     return (
         <>
