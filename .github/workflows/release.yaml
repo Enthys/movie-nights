@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: get env variables
-        run: env
+        run: echo "----> ${secrets.GH_TOKEN} ${GH_TOKEN}"
         shell: bash
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v4
