@@ -1,0 +1,22 @@
+name: Release project version
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@4
+      - name: install semantic-release
+        run: npm -g install semantic-release @semantic-release/git @semantic-release/commit-analyzer
+      - name: semantic-release
+        run: semantic-release
+        shell: bash
