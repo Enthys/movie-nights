@@ -13,9 +13,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: get env variables
-        run: echo "----> $GH_TOKEN"
-        shell: bash
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v4
         with:
@@ -23,5 +20,7 @@ jobs:
       - name: install semantic-release
         run: npm -g install semantic-release @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator
       - name: semantic-release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: semantic-release
         shell: bash
